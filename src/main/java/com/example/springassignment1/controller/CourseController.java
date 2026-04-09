@@ -1,47 +1,54 @@
 package com.example.springassignment1.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.http.MediaType;
+import com.example.springassignment1.Course;
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.*;
 
 @RestController
+@RequestMapping("/courses")
 public class CourseController {
+    private List<Course> courses = new ArrayList<>();
 
-    @GetMapping(value = "/courses", produces = MediaType.TEXT_HTML_VALUE)
-    public String getCourses() {
+    @PostMapping
+    public Course addCourse(@Valid @RequestBody Course course) {
+        courses.add(course);
+        return course;
+    }
 
-        Map<String, List<String>> courses = new LinkedHashMap<>();
+    @GetMapping
+    public List<Course> getCourses() {
+        return courses;
+    }
 
-        courses.put("Foundation Courses",
-                List.of("Introduction to Programming", "Mathematics I"));
+    @PutMapping("/{id}")
+    public Course updateCourse(@PathVariable int id, @Valid @RequestBody Course updatedCourse) {
 
-        courses.put("Undergraduate Courses",
-                List.of("Data Structures", "Algorithms", "Operating Systems",
-                        "Databases", "Computer Networks"));
-
-        courses.put("Honours Courses",
-                List.of("Machine Learning", "Distributed Systems",
-                        "Advanced Algorithms", "Cybersecurity"));
-
-        StringBuilder html = new StringBuilder("<html><body style='font-family: Arial, sans-serif;'>");
-
-        html.append("<h1>Computer Science Courses</h1>");
-
-        for (String category : courses.keySet()) {
-            html.append("<h2>").append(category).append("</h2>");
-            html.append("<ul>");
-
-            for (String course : courses.get(category)) {
-                html.append("<li>").append(course).append("</li>");
+        for (Course course : courses) {
+            if (course.getId() == id) {
+                course.setName(updatedCourse.getName());
+                course.setCategory(updatedCourse.getCategory());
+                return course;
             }
-
-            html.append("</ul>");
         }
 
-        html.append("</body></html>");
+        throw new RuntimeException("Course not found");
+    }
 
-        return html.toString();
+    @DeleteMapping("/{id}")
+    public String deleteCourse(@PathVariable int id) {
+
+        Iterator<Course> iterator = courses.iterator();
+
+        while (iterator.hasNext()) {
+            Course course = iterator.next();
+            if (course.getId() == id) {
+                iterator.remove();
+                return "Course deleted successfully";
+            }
+        }
+
+        return "Course not found";
     }
 }
